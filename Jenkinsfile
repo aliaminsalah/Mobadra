@@ -4,13 +4,7 @@ pipeline {
 		timeout(time: 1, unit: 'HOURS')   
 		retry(2)
 	} 
-   	triggers {
-		cron('0 * * * *')
-	}
 
-      	parameters {
-		choice(name: 'GOAL',choices: ['compile', 'package', 'clean package'], description: 'Pick something')
-	}
 	stages {
 		stage('Source Code') {
 			steps {
@@ -18,12 +12,13 @@ pipeline {
  			   branch: 'main'
 		}
 	}
- 		stage('Build the code') {
+ 		stage('Build the code and Sonarqube-Analysis') {
 			steps {
-			   sh script: "/opt/apache-maven-3.8.7/bin/mvn ${params.GOAL}"
+				withSonarQubeEnv('SONAR_LATEST') {
+			        sh script: '/opt/apache-maven-3.8.7/bin/mvn package sonar:sonar'
+			}
 		}
-
-	}
+   	}
 		stage('Junit Reporting') {
 			steps {
 			  junit testResults: 'target/surefire-reports/*.xml'
