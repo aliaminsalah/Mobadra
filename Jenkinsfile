@@ -7,6 +7,10 @@ pipeline {
    	triggers {
 		cron('0 * * * *')
 	}
+
+      	parameters {
+		choice(name: 'GOAL',choices: ['compile', 'package', 'clean package'], description: 'Pick something')
+	}
 	stages {
 		stage('Source Code') {
 			steps {
@@ -14,12 +18,11 @@ pipeline {
  			   branch: 'main'
 		}
 	}
- 		stage('Build the code and sonarqube-analysis') {
+ 		stage('Build the code') {
 			steps {
-			   withSonarQubeEnv('SONAR_LATEST') {
-			   sh script: '/opt/apache-maven-3.8.7/bin/mvn clean package sonar:sonar'
-			}
+			   sh script: "/opt/apache-maven-3.8.7/bin/mvn ${params.GOAL}"
 		}
+
 	}
 		stage('Junit Reporting') {
 			steps {
