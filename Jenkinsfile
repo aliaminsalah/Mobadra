@@ -14,11 +14,12 @@ pipeline {
  			   branch: 'main'
 		}
 	}
- 		stage('Build the code') {
+ 		stage('Build the code and sonarqube-analysis') {
 			steps {
-			   sh script: '/opt/apache-maven-3.8.7/bin/mvn clean package'
+			   withSonarQubeEnv('SONAR_LATEST') {
+			   sh script: '/opt/apache-maven-3.8.7/bin/mvn clean package sonar:sonar'
+			}
 		}
-
 	}
 		stage('Junit Reporting') {
 			steps {
