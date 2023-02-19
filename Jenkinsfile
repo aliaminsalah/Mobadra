@@ -16,9 +16,11 @@ pipeline {
 	     git url: 'https://github.com/techleads23/spring-petclinic.git',branch: 'main'
 	}
       }
-        stage('Build the code') {
+        stage('Build the code and Sonar Cube Analysis') {
           steps {
-	    sh script: "/opt/apache-maven-3.9.0/bin/mvn ${params.GOAL}" 	
+                withSonarQubeEnv('SONAR_LATEST') { 
+	         sh script: '/opt/apache-maven-3.9.0/bin/mvn clean package sonar:sonar' 	
+            }
           }
 	}
 	stage('Reporting and Archiving') {
