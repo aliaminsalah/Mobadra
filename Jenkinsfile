@@ -15,7 +15,7 @@ pipeline {
       }
         stage('Build the code') {
           steps {
-	    sh script: 'mvn clean package' 	
+	    sh script: '/opt/apache-maven-3.9.0/bin/mvn clean package' 	
           }
 	}
 	stage('Reporting and Archiving') {
