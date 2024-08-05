@@ -1,43 +1,63 @@
 pipeline {
-     agent { label 'JDK17' }
-     options { 
-	timeout(time: 1, unit: 'HOURS')
-        retry(2)
-       }
-     triggers {
-	cron('0 * * * *')
-     }
-     parameters {
-          choice(name: 'GOAL',choices: ['compile', 'package', 'clean package'])
-      }
-    stages {
-    	stage('Source code') {
-          steps {
-	     git url: 'https://github.com/techleads23/spring-petclinic.git',branch: 'main'
-	}
-      }
-        stage('Build the code and Sonar Cube Analysis') {
-          steps {
-                withSonarQubeEnv('SONAR_LATEST') { 
-	         sh script: '/opt/apache-maven-3.9.0/bin/mvn clean package sonar:sonar' 	
-            }
-          }
-	}
-	stage('Reporting and Archiving') {
- 	  steps {
-            junit testResults: 'target/surefire-reports/*.xml'
-	}
-      }
-   }
-   post {
-       success {
-        //send the success email
-        echo "Success"
-   }
-       unsuccessful{
-	//send the unsuccess email
-        echo "Failure"
-      }
+    agent any
 
-    }  
+    environment {
+        DOCKER_CREDENTIALS_ID = 'docker-hub-credentials' // Docker Hub credentials ID
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/aliaminsalah/Mobadra.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def image = docker.build('petclinic-image', '-f Dockerfile .')
+                }
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                script {
+                    docker.image('petclinic-image').inside {
+                        sh 'docker-compose -f docker-compose.yml up --abort-on-container-exit'
+                    }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', "${env.DOCKER_CREDENTIALS_ID}") {
+                        docker.image('petclinic-image').push('latest')
+                    }
+                }
+            }
+        }
+
+        stage('Clean Up') {
+            steps {
+                script {
+                    sh 'docker-compose down'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()  // Clean workspace after the build
+        }
+        success {
+            echo 'Pipeline executed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed.'
+        }
+    }
 }

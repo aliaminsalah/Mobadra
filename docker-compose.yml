@@ -1,23 +1,27 @@
-version: "2.2"
-
+version: '3.8'
 services:
-  mysql:
-    image: mysql:5.7
+  spring-petclinic:
+    image: MohamedElsayed7/Task12
     ports:
-      - "3306:3306"
+      - "8081:8080"
     environment:
-      - MYSQL_ROOT_PASSWORD=
-      - MYSQL_ALLOW_EMPTY_PASSWORD=true
-      - MYSQL_USER=petclinic
-      - MYSQL_PASSWORD=petclinic
-      - MYSQL_DATABASE=petclinic
-    volumes:
-      - "./conf.d:/etc/mysql/conf.d:ro"
+      - SPRING_PROFILES_ACTIVE=postgres
+      - POSTGRES_URL=jdbc:postgresql://postgres:5432/petclinic
+      - POSTGRES_USER=petclinic
+      - POSTGRES_PASS=petclinic
+    depends_on:
+      - postgres
+
   postgres:
-    image: postgres:14.1
+    image: postgres:13
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_PASSWORD=petclinic
       - POSTGRES_USER=petclinic
+      - POSTGRES_PASSWORD=petclinic
       - POSTGRES_DB=petclinic
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
