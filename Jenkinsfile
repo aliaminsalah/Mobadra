@@ -15,7 +15,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build('petclinic-image')
+                    docker.build('petclinic-image:latest')
                 }
             }
         }
@@ -23,7 +23,7 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    docker.image('petclinic-image').inside {
+                    docker.image('petclinic-image:latest').inside {
                         sh 'docker-compose -f docker-compose.yml up --abort-on-container-exit'
                     }
                 }
@@ -34,7 +34,7 @@ pipeline {
             steps {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', "${env.DOCKER_CREDENTIALS_ID}") {
-                        docker.image('petclinic-image').push('latest')
+                        docker.image('petclinic-image:latest').push('latest')
                     }
                 }
             }
