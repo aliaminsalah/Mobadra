@@ -30,4 +30,29 @@ pipeline {
                 script {
                     docker.build('petclinic-image:latest')
                 }
-            
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                script {
+                    docker.image('petclinic-image:latest').inside {
+                        sh 'docker-compose -f docker-compose.yml up --abort-on-container-exit'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()  // Clean workspace after the build
+        }
+        success {
+            echo 'Pipeline executed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed.'
+        }
+    }
+}
