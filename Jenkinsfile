@@ -29,24 +29,6 @@ pipeline {
                 }
             }
         }
-
-        stage('Deploy') {
-            steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', "${env.DOCKER_CREDENTIALS_ID}") {
-                        docker.image('petclinic-image:latest').push('latest')
-                    }
-                }
-            }
-        }
-
-        stage('Clean Up') {
-            steps {
-                script {
-                    sh 'docker-compose down'
-                }
-            }
-        }
     }
 
     post {
